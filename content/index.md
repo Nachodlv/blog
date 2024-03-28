@@ -1,6 +1,7 @@
 ---
-title: Welcome to Quartz
----
+title: "Hello World"
 
-This is a blank Quartz installation.
-See the [documentation](https://quartz.jzhao.xyz) for how to get started.
+---
+#me
+
+I am Ignacio de la Vega, game programmer and aspiring blogger
