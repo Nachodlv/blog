@@ -4,9 +4,6 @@ tags:
   - mass
   - replication
 ---
->[!danger] This post is currently in progress
-> There might be things missing or incorrect
-
 Currently I am creating a game prototype using Mass, one of my primary objectives is to implement multiplayer functionality. However, I've encountered a significant lack of documentation on the Internet regarding how to achieve this. So, I've decided to create this blog post to address this.
 
 Throughout this post, I'll be detailing the steps necessary to replicate fragments in your Unreal Engine project. Additionally, I'll try to provide comprehensive references to the sources I've utilized to learn about Mass Entity.
@@ -477,9 +474,9 @@ To incorporate replication into our entity configuration asset, we need to add t
 I added some movement logic that only runs on the server and opened the game on client net mode. We can see how the entity also moves on client. The movement is not smooth because it just moves when it receives the server location. On other post I can explain how we can smooth this movement.
 ![replication gif](https://lh3.googleusercontent.com/drive-viewer/AKGpihbZu5XneQ8a-P79RVnmG7ScHSvS6DUptO6d52yJE1wpVVWMvaU7id11ZG27USWi4oty7RH9NSUAlCoL6oEpiQHqE4awyadq1Q=s1600-v0)
 
->[!bug]- If you're experiencing issues with not seeing the entity on the client, ensure that the processors, *MassVisualizationLODProcessor* and *MassVisualizationProcessor*, have the client exection flag
->This flag can be set on "Project Settings > Engine - Mass > Module Settings > MassEntity > Processor CDOs > MassVisualizationLODProcessor > ExecutionFlags"
->![mass replication turn on client](https://lh3.googleusercontent.com/drive-viewer/AKGpihaUX6RjCQOaXO3179B84-K4-gCGihINQwUDRLG5SKlnVif912eXynt2zBDNKT42WcSZa2mO7NmzDuu3Afgm6lNGkFeDKV_TKQk=s1600-v0)
+> [!bug]- If you're experiencing issues with not seeing the entity on the client, ensure that the processors, *MassVisualizationLODProcessor* and *MassVisualizationProcessor*, have the client exection flag
+> This flag can be set on "Project Settings \> Engine - Mass \> Module Settings \> MassEntity \> Processor CDOs \> MassVisualizationLODProcessor > ExecutionFlags"
+> ![mass replication turn on client](https://lh3.googleusercontent.com/drive-viewer/AKGpihaUX6RjCQOaXO3179B84-K4-gCGihINQwUDRLG5SKlnVif912eXynt2zBDNKT42WcSZa2mO7NmzDuu3Afgm6lNGkFeDKV_TKQk=s1600-v0)
 ---
 
 # Conclusion
