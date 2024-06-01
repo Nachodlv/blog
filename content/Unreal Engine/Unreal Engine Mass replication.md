@@ -8,14 +8,14 @@ Currently I am creating a game prototype using Mass, one of my primary objective
 
 Throughout this post, I'll be detailing the steps necessary to replicate fragments in your Unreal Engine project. Additionally, I'll try to provide comprehensive references to the sources I've utilized to learn about Mass Entity.
 
-Should you have any questions regarding the topics covered in this post or if you come across any inaccuracies, please feel free to [reach out](https://chat.openai.com/c/d22b1606-888f-49d4-a037-deab16ec6be8#Contact-Info).
+Should you have any questions regarding the topics covered in this post or if you come across any inaccuracies, please feel free to [[Contact Info|contact me]].
 
 For those unfamiliar with Mass, I would advise against continuing to read this post. Instead, you may find it beneficial to explore the [[#Sources]] section, where I've compiled documentation and tutorials that may serve as a helpful introduction.
 # Class Diagram
 
 Below is a concise class diagram illustrating the interaction between various classes involved in Mass replication.
 
-![Mass Replication Class Diagram](https://lh3.googleusercontent.com/drive-viewer/AKGpihZvxbsPZg-20VJoKI6fR0CmYS-aemm4Fa7S8IpMuV0Hu6zoozripE3-81b6xirSzjBjfo7nX7f85Ekqh1frXpREoMoD9xwMf9g=s1600-v0)
+![Mass Replication Class Diagram](https://lh3.googleusercontent.com/d/1k7N16e00jx4tNv35hsDD2roEt0ya0foP=w1000)
 
 
 > [!info] Having trouble seeing the above diagram? 
@@ -23,7 +23,7 @@ Below is a concise class diagram illustrating the interaction between various cl
 
 ### More detailed classes explanation
 - **UMassReplicatorBase:** this class is responsible for storing fragment data into UObjects for replication, and it should exclusively operate on the server side.
--  **FReplicatedAgentBase:** contains data specific to each mass entity that needs to be replicated, such as entity position.
+- **FReplicatedAgentBase:** contains data specific to each mass entity that needs to be replicated, such as entity position.
 - **FMassFastArrayItemBase:** a fast array item designed for efficient agent replication, containing a **FReplicatedAgentBase**.
 - **FMassClientBubbleHandler**: inserts server-replicated data into client fragments
 - **FMassClientBubbleSerializer**: replicates the fast array between the server and the client, with one instance per client, containing an array of **FMassFastArrayItemBase** and a **FMassClientBubbleHandler**.
@@ -37,10 +37,10 @@ Most of the examples provided are based on how the plugin _MassCrowd_ replicates
 
 For the full implementation and repository used for this example, please refer to [Mass extension plugin on GitHub](https://github.com/Nachodlv/ue-mass-extension-plugin/tree/main/Source/MassReplicationBase).
 
-![Mass Replication Example.drawio.png](https://lh3.googleusercontent.com/drive-viewer/AKGpiha7kefRucUsFjC9bQyieNc31g8A--zs22kP_t_EsabTzHIziLlvFCNEnIpwnU277_VW4CzIp7_QKvZu1Iy4o1cgNQc2rItyf2k=s2560)
+![Mass Replication Example.drawio.png](https://lh3.googleusercontent.com/d/1U0juQvYqnhahnz6tIB5xQzvTwce7IQst=w1000?authuser=0)
 
 Each bubble exists on the owning client and on the server.
-![Mass Replicationn Client Bubble.drawio](https://lh3.googleusercontent.com/drive-viewer/AKGpihaiDrrPBF7pWF8gZLNbSturyP6Z7GH64KjkUiEJFlj7jF9whbZUrIxuiVnmWFsqyQfNeUq0xe8mNNJyvBkA-ge2styOAsmEDZA=s1600-v0)
+![Mass Replicationn Client Bubble.drawio](https://lh3.googleusercontent.com/d/1krRIwh18Lzyu-fSpCqcuZvLcK2h4Eoz4=w1000?authuser=0)
 
 ## Add necessary dependencies
 
@@ -108,7 +108,7 @@ Next, we'll implement **FMassFastArrayItemBase** using **FReplicatedAgentBase**,
 >```cpp
 >/** Fast array item for efficient agent replication. Remember to make this dirty if any FReplicatedCrowdAgent member variables are modified */  
 >USTRUCT()  
->struct FMRBMassFastArrayItem : public FMassFastArrayItemBase  
+>struct MASSREPLICATIONBASE_API FMRBMassFastArrayItem : public FMassFastArrayItemBase  
 >{  
 >	GENERATED_BODY()  
 >	  
@@ -146,7 +146,7 @@ We'll commence by declaring a class tasked with storing server data in client fr
 > [!example]- FMRBMassClientBubbleHandler
 > ```cpp
 > /** Inserts the data that the server replicated into the fragments */  
-> class FMRBMassClientBubbleHandler : public TClientBubbleHandlerBase<FMRBMassFastArrayItem>  
+> class MASSREPLICATIONBASE_API FMRBMassClientBubbleHandler : public TClientBubbleHandlerBase<FMRBMassFastArrayItem>  
 > {
 > public:  
 > #if UE_REPLICATION_COMPILE_SERVER_CODE  
@@ -175,7 +175,7 @@ Next, we declare a struct that contains the fast array previously implemented. T
 
 > [!example]- FMRBMassClientBubbleSerializer
 > ```cpp
-> /** Mass client bubble, there will be one of these per client and it will handle replicating the fast array of Agents between the server and clients */
+> /** Mass client bubble, there will be one of these per client, and it will handle replicating the fast array of Agents between the server and clients */
 > USTRUCT()
 > struct FMRBMassClientBubbleSerializer : public FMassClientBubbleSerializerBase
 > {
@@ -193,7 +193,7 @@ Next, we declare a struct that contains the fast array previously implemented. T
 > 		return FFastArraySerializer::FastArrayDeltaSerialize<FMRBMassFastArrayItem, FMRBMassClientBubbleSerializer>(Entities, DeltaParams, *this);
 > 	}
 > 
-> 	/** The one responsible of storing the server data in the client fragments */
+> 	/** The one responsible for storing the server data in the client fragments */
 > 	FMRBMassClientBubbleHandler Bubble;
 > 
 > protected:
@@ -466,22 +466,34 @@ This concludes the implementation of the `FMRBMassClientBubbleHandler` class. Fo
 
 ---
 
+## Register Client Bubble Class
+We need to register the `AMRBMassClientBubbleInfo` into the `UMassreplicationSubsystem`. To do so, we can use the function `UMassReplicationSubsystem::RegisterBubbleInfoClass`. We can call this function in the `PostInitialize` of any WorldSubsystem.
+
+> [!example]- RegisterBubbleInfoClass
+>```cpp
+>const UWorld* World = GetWorld();  
+>UMassReplicationSubsystem* ReplicationSubsystem = UWorld::GetSubsystem<UMassReplicationSubsystem>(World);
+>ReplicationSubsystem->RegisterBubbleInfoClass(AMRBMassClientBubbleInfo::StaticClass());
+>```
+
+---
+
 ## Add the replication fragment to our entity
 To incorporate replication into our entity configuration asset, we need to add the replication trait and set the Bubble Info and Replicator Class. Below is an image showing how to configure this in the entity config asset:
 
-![mas entity replication trait](https://lh3.googleusercontent.com/drive-viewer/AKGpihY0ApdDQCFPZcY47A5qwxSODPSCAW_yNVV1EKWJOcC2O4CUn61hvTNTBlMPbQo_szb5FZH1QPHCYTL5kXq9ZeCAAvzjpnbMzFo=s1600-v0)
+![mas entity replication trait](https://lh3.googleusercontent.com/d/18lybDt1ffpfgvQ6BPs5VJ-WBZiAMArX0=w1000?authuser=0)
 
 I added some movement logic that only runs on the server and opened the game on client net mode. We can see how the entity also moves on client. The movement is not smooth because it just moves when it receives the server location. On other post I can explain how we can smooth this movement.
-![replication gif](https://lh3.googleusercontent.com/drive-viewer/AKGpihbZu5XneQ8a-P79RVnmG7ScHSvS6DUptO6d52yJE1wpVVWMvaU7id11ZG27USWi4oty7RH9NSUAlCoL6oEpiQHqE4awyadq1Q=s1600-v0)
+![replication gif](https://lh3.googleusercontent.com/d/11ywZt9z9kGywY3b738YcEdF4n80FGqbd=w1000?authuser=0)
 
 > [!bug]- If you're experiencing issues with not seeing the entity on the client, ensure that the processors, *MassVisualizationLODProcessor* and *MassVisualizationProcessor*, have the client exection flag
 > This flag can be set on "Project Settings \> Engine - Mass \> Module Settings \> MassEntity \> Processor CDOs \> MassVisualizationLODProcessor > ExecutionFlags"
-> ![mass replication turn on client](https://lh3.googleusercontent.com/drive-viewer/AKGpihaUX6RjCQOaXO3179B84-K4-gCGihINQwUDRLG5SKlnVif912eXynt2zBDNKT42WcSZa2mO7NmzDuu3Afgm6lNGkFeDKV_TKQk=s1600-v0)
+> ![mass replication turn on client](https://lh3.googleusercontent.com/d/1LlriU83GbO54E_Ju2jXLhlYPN1HbH2jJ=w1000?authuser=0)
 ---
 
 # Conclusion
 
-While the example provided here showcases replication, it may have some bugs or limitations on a larger scale. For smoother movement, consider implementing techniques to smooth the entity's movement on the client side, which I might be explaining in the future in a separate post. You might also want to add LOD tags requirements on the URMBMassReplicator so it doesn't replicate the positions of not relevant entities.
+While the example provided here showcases replication, it may have some bugs or limitations on a larger scale. For smoother movement, consider implementing techniques to smooth the entity's movement on the client side, which I explain how to fix it on this [[Unreal Engine Mass Smooth Movement|post]]. You might also want to add LOD tags requirements on the URMBMassReplicator so it doesn't replicate the positions of not relevant entities.
 
 Aditionally, for positions Mass Entity already provides you with *FMassReplicationProcessorPositionYawHandler* so I recommend using it when replication the entity transform. I didn't want to use them in this example so I could show you how to replicate your own data.
 
@@ -490,8 +502,11 @@ If you are using zone graphs you should be able to use the *UMassCrowdReplicator
 Is possible for big projects you would probably want to have replicator and bubble classes for each specific entity so you have more modular responsibilities.
 
 After writing this post, some additional ideas for future posts include:
-- How to smooth the position of an entity client-side
-- Implementing basic processors to move an entity
+- [X] How to smooth the position of an entity client-side
+	- Already finished [[Unreal Engine Mass Smooth Movement|here]]!
+- [ ] Implementing basic processors to move an entity
+
+Continue reading [[Unreal Engine Mass Smooth Movement|Unreal Engine Mass Smooth Movement]] on how to smooth the entity movement on high latency.
 
 ---
 
@@ -499,3 +514,11 @@ After writing this post, some additional ideas for future posts include:
 - [Megafunk/MassSample: github.com)](https://github.com/Megafunk/MassSample) - Best source to learn more about Mass in general. It doesn't contain information about replication as of the publication of this post
 - [UE5 Mass Replication - Unreal Forum](https://forums.unrealengine.com/t/ue5-mass-replication/649737/4) - Discussion in the Unreal Forum on how to implement replication with Mass Entity.
 - [Your first 60 minutes with mass](https://dev.epicgames.com/community/learning/tutorials/JXMl/unreal-engine-your-first-60-minutes-with-mass) - First time with Mass? Start here.
+
+---
+
+# Updates
+
+Date|Comment
+---|---
+01/06/2024|Update sample code for better extension and add link of smooth movement post
