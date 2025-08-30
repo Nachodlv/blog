@@ -23,7 +23,7 @@ The bad network simulation is still on. The red debug square represents the actu
 Without the red debug square:
 ![[smooth.mp4]]
 
-The code for this example can be found [here at GitHub](https://github.com/Nachodlv/ue-mass-extension-plugin/tree/main/Source/MassReplicationSmooth)
+The code for this example can be found [here at GitHub](https://github.com/Nachodlv/ue-mass-extension-plugin/tree/f9b03347b9d3a5bf3cea5ccc529a4d918867590a)
 # Class Diagram
 We are extending the Mass Replication Base plugin discussed in the [[Unreal Engine Mass replication|post]], which explains how to replicate a variable by implementing a custom client bubble.
 ![[Mass Replication Smooth Class Diagram.drawio.png]]
@@ -357,4 +357,10 @@ With the implementation finished, we can now see how the entity moves smoothly e
 Some potential improvements include adding LOD tag requirements to ensure we only smooth entities relevant to our player, which could enhance performance and efficiency.
 
 Thank you for reading!
+
+# Updates
+
+| Date       | Comment                                                                             |
+| ---------- | ----------------------------------------------------------------------------------- |
+| 08/30/2025 | Update GitHub links to point to the correct version from when this blog was written |
 

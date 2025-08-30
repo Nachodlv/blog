@@ -35,7 +35,7 @@ In this section, I'll explain the process of replicating a vector, specifically 
 
 Most of the examples provided are based on how the plugin _MassCrowd_ replicates its variables. If you're utilizing this plugin, some variables will be replicated out of the box. However, if you intend to add new variables for replication, the examples presented here remain relevant and useful.
 
-For the full implementation and repository used for this example, please refer to [Mass extension plugin on GitHub](https://github.com/Nachodlv/ue-mass-extension-plugin/tree/main/Source/MassReplicationBase).
+For the full implementation and repository used for this example, please refer to [Mass extension plugin on GitHub](https://github.com/Nachodlv/ue-mass-extension-plugin/tree/f9b03347b9d3a5bf3cea5ccc529a4d918867590a).
 
 ![Mass Replication Example.drawio.png](https://lh3.googleusercontent.com/d/1U0juQvYqnhahnz6tIB5xQzvTwce7IQst=w1000?authuser=0)
 
@@ -519,6 +519,7 @@ Continue reading [[Unreal Engine Mass Smooth Movement|Unreal Engine Mass Smooth 
 
 # Updates
 
-Date|Comment
----|---
-01/06/2024|Update sample code for better extension and add link of smooth movement post
+| Date       | Comment                                                                             |
+| ---------- | ----------------------------------------------------------------------------------- |
+| 08/30/2025 | Update GitHub links to point to the correct version from when this blog was written |
+| 01/06/2024 | Update sample code for better extension and add link of smooth movement post        |
