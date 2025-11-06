@@ -3,6 +3,7 @@ tags:
   - "#unreal-engine"
   - mass
   - replication
+  - "#programming"
 ---
 In my previous [[Unreal Engine Mass replication|post]], I talked about how to replicate variables with Mass Entity. The example explained how to replicate the position of an entity from the server to the client. One thing that is very clear on the client view is that the movement is not fluid. This is because the entity teleports to the server position when a network package is received.
 

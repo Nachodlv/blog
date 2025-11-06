@@ -3,6 +3,7 @@ tags:
   - unreal-engine
   - mass
   - replication
+  - "#programming"
 ---
 Currently I am creating a game prototype using Mass, one of my primary objectives is to implement multiplayer functionality. However, I've encountered a significant lack of documentation on the Internet regarding how to achieve this. So, I've decided to create this blog post to address this.
 
@@ -10,7 +11,7 @@ Throughout this post, I'll be detailing the steps necessary to replicate fragmen
 
 Should you have any questions regarding the topics covered in this post or if you come across any inaccuracies, please feel free to [[Contact Info|contact me]].
 
-For those unfamiliar with Mass, I would advise against continuing to read this post. Instead, you may find it beneficial to explore the [[#Sources]] section, where I've compiled documentation and tutorials that may serve as a helpful introduction.
+For those unfamiliar with Mass, I would advise against continuing to read this post. Instead, you may find it beneficial to explore the [[#Sources]] section, where I've compiled documentation and tutorials that may serve as a helpful introduction. You can also read my [[Unreal Engine Mass Introduction]] where I go through Mass fundamentals.
 # Class Diagram
 
 Below is a concise class diagram illustrating the interaction between various classes involved in Mass replication.
@@ -112,15 +113,15 @@ Next, we'll implement **FMassFastArrayItemBase** using **FReplicatedAgentBase**,
 >{  
 >	GENERATED_BODY()  
 >	  
->	FRMBMassFastArrayItem() = default;  
->	FRMBMassFastArrayItem(const FRMBReplicatedAgent& InAgent, const FMassReplicatedAgentHandle InHandle)  
+>	FMRBMassFastArrayItem() = default;  
+>	FMRBMassFastArrayItem(const FMRBReplicatedAgent& InAgent, const FMassReplicatedAgentHandle InHandle)  
 >		: FMassFastArrayItemBase(InHandle), Agent(InAgent) {}  
 >	  
 >	/** This typedef is required to be provided in FMassFastArrayItemBase derived classes (with the associated FReplicatedAgentBase derived class) */  
->	typedef FRMBReplicatedAgent FReplicatedAgentType;  
+>	typedef FMRBReplicatedAgent FReplicatedAgentType;  
 >	  
 >	UPROPERTY()  
->	FRMBReplicatedAgent Agent;  
+>	FMRBReplicatedAgent Agent;  
 >};
 >```
 
@@ -271,10 +272,10 @@ In this section, we will implement the `UMassReplicatorBase`, responsible for st
 
 We start by specifying the fragments from which we will extract the data. This is necessary because `UMassReplicatorBase` is executed by `UMassReplicationProcessor`, which requires knowledge of the entities to query. Here, we'll only need the `FTransformFragment` to extract transform location.
 
-> [!example]- URMBMassReplicator adding query requirements
+> [!example]- UMRBMassReplicator adding query requirements
 >
 >```cpp
->class URMBMassReplicator : public UMassReplicatorBase  
+>class UMRBMassReplicator : public UMassReplicatorBase  
 >{  
 >GENERATED_BODY()  
 >  
@@ -289,7 +290,7 @@ We start by specifying the fragments from which we will extract the data. This i
 ### Extracting data from fragments
 Next, we iterate through entities with transform fragments, extract their location, and store it in `FReplicatedAgentBase`. We handle three cases: entity creation, update, and deletion, each with corresponding lambda functions.
 
-We override the `ProcessClientReplication` function inside `URMBMassReplicator` and call the helper function `UMassReplicatorBase::CalculateClientReplication` with the corresponding lambda functions.
+We override the `ProcessClientReplication` function inside `UMRBMassReplicator` and call the helper function `UMassReplicatorBase::CalculateClientReplication` with the corresponding lambda functions.
 - CacheViewsCallback
 - AddEntityCallback
 - ModifyEntityCallback
@@ -300,7 +301,7 @@ We override the `ProcessClientReplication` function inside `URMBMassReplicator` 
 >```cpp
 >virtual void ProcessClientReplication(FMassExecutionContext& Context, FMassReplicationContext& ReplicationContext) override  
 >{
->	CalculateClientReplication<FRMBMassFastArrayItem>(Context, ReplicationContext, CacheViewsCallback, AddEntityCallback, ModifyEntityCallback, RemoveEntityCallback);
+>	CalculateClientReplication<FMRBMassFastArrayItem>(Context, ReplicationContext, CacheViewsCallback, AddEntityCallback, ModifyEntityCallback, RemoveEntityCallback);
 >}
 >```
 
@@ -328,10 +329,10 @@ Next, the `AddEntityCallback` sets the location in the entity agent and adds the
 >[!example]- AddEntityCallback
 >
 >```cpp
->auto AddEntityCallback = [&] (FMassExecutionContext& InContext, const int32 EntityIdx, FRMBReplicatedAgent& InReplicatedAgent, const FMassClientHandle ClientHandle)  
+>auto AddEntityCallback = [&] (FMassExecutionContext& InContext, const int32 EntityIdx, FMBReplicatedAgent& InReplicatedAgent, const FMassClientHandle ClientHandle)  
 >{  
 >	// Retrieves the bubble of the relevant client
->	ARMBMassClientBubbleInfo& BubbleInfo = RepSharedFrag->GetTypedClientBubbleInfoChecked<ARMBMassClientBubbleInfo>(ClientHandle);  
+>	AMRBMassClientBubbleInfo& BubbleInfo = RepSharedFrag->GetTypedClientBubbleInfoChecked<AMRBMassClientBubbleInfo>(ClientHandle);  
 >
 >	// Sets the location in the entity agent
 >	InReplicatedAgent.SetEntityLocation(TransformFragments[EntityIdx].GetTransform().GetLocation());  
@@ -350,11 +351,11 @@ Moving on to the `ModifyEntityCallback`, it updates the agent location with the 
 >(FMassExecutionContext& InContext, const int32 EntityIdx, const EMassLOD::Type LOD, const double Time, const FMassReplicatedAgentHandle Handle, const FMassClientHandle ClientHandle)  
 >{  
 >	// Grabs the client bubble
->	ARMBMassClientBubbleInfo& BubbleInfo = RepSharedFrag->GetTypedClientBubbleInfoChecked<ARMBMassClientBubbleInfo>(ClientHandle);  
->	FRMBMassClientBubbleHandler& Bubble = BubbleInfo.GetBubbleSerializer().Bubble;  
+>	AMRBMassClientBubbleInfo& BubbleInfo = RepSharedFrag->GetTypedClientBubbleInfoChecked<AMRBMassClientBubbleInfo>(ClientHandle);  
+>	FMRBMassClientBubbleHandler& Bubble = BubbleInfo.GetBubbleSerializer().Bubble;  
 >
 >	// Retrieves the entity agent
->	FRMBMassFastArrayItem* Item = Bubble.GetMutableItem(Handle);  
+>	FMRBMassFastArrayItem* Item = Bubble.GetMutableItem(Handle);  
 >	  
 >	bool bMarkItemDirty = false;  
 >	  
@@ -383,14 +384,14 @@ Finally, the `RemoveEntityCallback` simply removes the entity agent from the cli
 >auto RemoveEntityCallback = [RepSharedFrag](FMassExecutionContext& Context, const FMassReplicatedAgentHandle Handle, const FMassClientHandle ClientHandle)  
 >{  
 >	// Retrieve the client bubble
->	ARMBMassClientBubbleInfo& BubbleInfo = RepSharedFrag->GetTypedClientBubbleInfoChecked<ARMBMassClientBubbleInfo>(ClientHandle); 
+>	AMRBMassClientBubbleInfo& BubbleInfo = RepSharedFrag->GetTypedClientBubbleInfoChecked<AMRBMassClientBubbleInfo>(ClientHandle); 
 >
 >	// Remove the entity agent from the bubble
 >	BubbleInfo.GetBubbleSerializer().Bubble.RemoveAgent(Handle);  
 >};
 >```
 
-This concludes the implementation of `URMBMasReplicator`. We've added `UE_REPLICATION_COMPILE_SERVER_CODE` directives inside the `ProcessClientReplication` function to ensure implementation only exists in the server build.
+This concludes the implementation of `UMRBMasReplicator`. We've added `UE_REPLICATION_COMPILE_SERVER_CODE` directives inside the `ProcessClientReplication` function to ensure implementation only exists in the server build.
 
 For the complete implementation, refer to the following link: [MRBMassReplicator.cpp at Nachodlv/ue-mass-extension-plugin](https://github.com/Nachodlv/ue-mass-extension-plugin/blob/main/Source/MassReplicationBase/Private/MRBMassReplicator.cpp).
 
@@ -493,7 +494,7 @@ I added some movement logic that only runs on the server and opened the game on 
 
 # Conclusion
 
-While the example provided here showcases replication, it may have some bugs or limitations on a larger scale. For smoother movement, consider implementing techniques to smooth the entity's movement on the client side, which I explain how to fix it on this [[Unreal Engine Mass Smooth Movement|post]]. You might also want to add LOD tags requirements on the URMBMassReplicator so it doesn't replicate the positions of not relevant entities.
+While the example provided here showcases replication, it may have some bugs or limitations on a larger scale. For smoother movement, consider implementing techniques to smooth the entity's movement on the client side, which I explain how to fix it on this [[Unreal Engine Mass Smooth Movement|post]]. You might also want to add LOD tags requirements on the UMRBMassReplicator so it doesn't replicate the positions of not relevant entities.
 
 Aditionally, for positions Mass Entity already provides you with *FMassReplicationProcessorPositionYawHandler* so I recommend using it when replication the entity transform. I didn't want to use them in this example so I could show you how to replicate your own data.
 
@@ -521,5 +522,8 @@ Continue reading [[Unreal Engine Mass Smooth Movement|Unreal Engine Mass Smooth 
 
 | Date       | Comment                                                                             |
 | ---------- | ----------------------------------------------------------------------------------- |
+| 09/11/2025 | Add a reference to the mass introduction blog                                       |
+| 15/09/2025 | Fix some typos                                                                      |
 | 08/30/2025 | Update GitHub links to point to the correct version from when this blog was written |
 | 01/06/2024 | Update sample code for better extension and add link of smooth movement post        |
+
